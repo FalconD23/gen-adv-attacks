@@ -550,8 +550,8 @@ class GenAttackTrainer(Trainer):
         X_adv = X
         for i in range(self.attack.n_steps):
             if i < self.attack.n_steps - 1:
-                with torch.no_grad():
-                    X_adv = self.attack.step(X_adv, None, mode='train')
+                # with torch.no_grad():
+                X_adv = self.attack.step(X_adv, None, mode='train')
             else:
                 X_adv = self.attack.step(X_adv, None, mode='train')
 
