@@ -7,6 +7,8 @@ from src import attacks, estimation, models
 from src.attacks import attack_scheduler
 from src.utils import weights_from_clearml_by_name
 
+from src.optim.muon import SingleDeviceMuonWithAuxAdam
+
 
 def get_attack(attack_name: str, attack_params: Dict) -> attacks.BaseIterativeAttack:
     if attack_params is None:
@@ -91,8 +93,51 @@ def get_optimizer(
 ):
     if optimizer_params is None:
         optimizer_params = dict()
+
+    params = [p for p in model_params if p.requires_grad]
+    if optimizer_name == "Muon":
+        # Safety-first: hybrid mode (Muon for matrix params, Adam-like aux for scalars/bias/norm)
+        cfg = dict(optimizer_params)
+        muon_lr = cfg.pop("lr", 0.003)
+        muon_momentum = cfg.pop("momentum", 0.95)
+        muon_weight_decay = cfg.pop("weight_decay", 0.01)
+        aux_lr = cfg.pop("aux_lr", 1e-2)
+        aux_betas = cfg.pop("aux_betas", (0.9, 0.95))
+        aux_eps = cfg.pop("aux_eps", 1e-8)
+        aux_weight_decay = cfg.pop("aux_weight_decay", 0.01)
+        if cfg:
+            raise ValueError(f"Unknown Muon optimizer params: {list(cfg.keys())}")
+        muon_params = [p for p in params if p.ndim >= 2]
+        aux_params = [p for p in params if p.ndim < 2]
+        param_groups = []
+        if muon_params:
+            param_groups.append(
+                dict(
+                    params=muon_params,
+                    lr=muon_lr,
+                    momentum=muon_momentum,
+                    weight_decay=muon_weight_decay,
+                    use_muon=True,
+                )
+            )
+        if aux_params:
+            param_groups.append(
+                dict(
+                    params=aux_params,
+                    lr=aux_lr,
+                    betas=aux_betas,
+                    eps=aux_eps,
+                    weight_decay=aux_weight_decay,
+                    use_muon=False,
+                )
+            )
+        if not param_groups:
+            raise ValueError("No trainable parameters found for Muon optimizer.")
+        return SingleDeviceMuonWithAuxAdam(param_groups)
+
+
     try:
-        return getattr(torch.optim, optimizer_name)(model_params, **optimizer_params)
+        return getattr(torch.optim, optimizer_name)(params, **optimizer_params)
     except AttributeError:
         raise ValueError(f"Optimizer with name {optimizer_name} is not implemented")
 

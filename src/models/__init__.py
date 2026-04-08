@@ -1,6 +1,6 @@
 from .LSTM import LSTM, GenLSTM
 from .ResidualCNN import ResidualCNN, GenResidualCNN
-from .RNNAttention import RNNA
+from .RNNAttention import RNNA, GenRNNA
 from .S4 import S4
 from .TS2Vec import TS2VEC
 from .TST import TST
