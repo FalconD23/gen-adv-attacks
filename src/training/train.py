@@ -536,10 +536,15 @@ class GenAttackTrainer(Trainer):
     def _attack_criterion(self, X_adv: torch.Tensor, X: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
         delta = X_adv - X
         logits = self.attack.model(X_adv)
-
-        loss_attack = self.criterion(logits, labels)
         reg = self.alpha_l2 * (delta ** 2).mean()
-        loss = -(loss_attack - reg)
+
+        if labels.max() <= 1:
+            loss_to_inverted = self.criterion(logits, 1 - labels)
+            loss = loss_to_inverted + reg
+        else:
+            print('WARNING: multilabel classification, fallback on -loss')
+            loss_attack = self.criterion(logits, labels)
+            loss = -(loss_attack - reg)
 
         return loss, logits
 
@@ -562,7 +567,7 @@ class GenAttackTrainer(Trainer):
         loss.backward()
         self.optimizer.step()
 
-        return -loss, logits
+        return loss, logits
 
     def _valid_step(self, X: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor]:
         with torch.no_grad():
