@@ -94,10 +94,11 @@ def main(cfg: DictConfig):
         path = weights_from_clearml_by_name(project_name=project_name, task_name=task_name)
         attack_model_path = os.path.join(path)
     else:
-        attack_model_path = os.path.join(
-            cfg["model_folder"],
-            f"model_{cfg['attack_model']['name']}_{cfg['model_id_attack']}_{cfg['dataset']['name']}.pt"
-        )
+        # attack_model_path = os.path.join(
+        #     cfg["model_folder"],
+        #     f"model_{cfg['attack_model']['name']}_{cfg['model_id_attack']}_{cfg['dataset']['name']}.pt"
+        # )
+        attack_model_path = cfg["learning_model_filepath"]
 
     attack_model = get_model(
         cfg["attack_model"]["name"],
@@ -112,17 +113,19 @@ def main(cfg: DictConfig):
     inference_target_model = None
 
     if cfg['attack'].get('is_trainable', False):
-        # load learning_target_model (for training gen attack)
+        # # load learning_target_model (for training gen attack)
         if cfg.get('load_weights_learning', False):
-            project_name = cfg['project_weights']
-            task_name = f"model_{cfg['learning_target_model']['name']}_{cfg['model_id_learning']}_{cfg['dataset']['name']}"
-            path = weights_from_clearml_by_name(project_name=project_name, task_name=task_name)
-            learning_model_path = os.path.join(path)
+            pass
+            # project_name = cfg['project_weights']
+            # task_name = f"model_{cfg['learning_target_model']['name']}_{cfg['model_id_learning']}_{cfg['dataset']['name']}"
+            # path = weights_from_clearml_by_name(project_name=project_name, task_name=task_name)
+            # learning_model_path = os.path.join(path)
         else:
-            learning_model_path = os.path.join(
-                cfg["learning_model_folder"],
-                f"model_{cfg['learning_target_model']['name']}_{cfg['model_id_learning']}_{cfg['dataset']['name']}.pt"
-            )
+            # learning_model_path = os.path.join(
+            #     cfg["learning_model_folder"],
+            #     f"model_{cfg['learning_target_model']['name']}_{cfg['model_id_learning']}_{cfg['dataset']['name']}.pt"
+            # )
+            learning_model_path = cfg["learning_model_filepath"]
 
         learning_target_model = get_model(
             cfg["learning_target_model"]["name"],
@@ -139,10 +142,11 @@ def main(cfg: DictConfig):
             path = weights_from_clearml_by_name(project_name=project_name, task_name=task_name)
             inference_model_path = os.path.join(path)
         else:
-            inference_model_path = os.path.join(
-                cfg["inference_model_folder"],
-                f"model_{cfg['inference_target_model']['name']}_{cfg['model_id_inference']}_{cfg['dataset']['name']}.pt"
-            )
+            # inference_model_path = os.path.join(
+            #     cfg["inference_model_folder"],
+            #     f"model_{cfg['inference_target_model']['name']}_{cfg['model_id_inference']}_{cfg['dataset']['name']}.pt"
+            # )
+            inference_model_path = cfg["inference_model_filepath"]
 
         inference_target_model = get_model(
             cfg["inference_target_model"]["name"],
@@ -250,27 +254,29 @@ def main(cfg: DictConfig):
         # define source of loading (clearml or local)
         # path is always formed, regardless of the flag (like for other models)
         if cfg.get('load_weights_gen_attack', False) and cfg.get('project_weights_gen_attack'):
-            # load from clearml
-            project_name = cfg['project_weights_gen_attack']
-            task_name = gen_attack_model_name
-            try:
-                path = weights_from_clearml_by_name(project_name=project_name, task_name=task_name)
-                gen_attack_model_path = os.path.join(path)
-                gen_attack_model_from_clearml = True
-            except Exception as e:
-                print(f"Warning: Could not load gen attack model weights from clearml: {e}. Trying local path.")
-                gen_attack_model_path = os.path.join(
-                    cfg["gen_attack_model_folder"],
-                    f"{gen_attack_model_name}.pt"
-                )
-                gen_attack_model_from_clearml = False
+            pass
+            # # load from clearml
+            # project_name = cfg['project_weights_gen_attack']
+            # task_name = gen_attack_model_name
+            # try:
+            #     path = weights_from_clearml_by_name(project_name=project_name, task_name=task_name)
+            #     gen_attack_model_path = os.path.join(path)
+            #     gen_attack_model_from_clearml = True
+            # except Exception as e:
+            #     print(f"Warning: Could not load gen attack model weights from clearml: {e}. Trying local path.")
+            #     gen_attack_model_path = os.path.join(
+            #         cfg["gen_attack_model_folder"],
+            #         f"{gen_attack_model_name}.pt"
+            #     )
+            #     gen_attack_model_from_clearml = False
         else:
             # load locally (by default, like for other models)
-            gen_attack_model_path = os.path.join(
-                cfg["gen_attack_model_folder"],
-                f"{gen_attack_model_name}.pt"
-            )
             gen_attack_model_from_clearml = False
+            # gen_attack_model_path = os.path.join(
+            #     cfg["gen_attack_model_folder"],
+            #     f"{gen_attack_model_name}.pt"
+            # )
+            gen_attack_model_path = cfg["gen_attack_model_filepath"]
 
         # check if file exists and inform user
         print(f"\n=== Gen Attack Model Loading ===")
@@ -285,9 +291,9 @@ def main(cfg: DictConfig):
         elif gen_attack_model_path:
             print(f"Warning: Gen attack model weights not found at {gen_attack_model_path}")
             # check if files exist in directory
-            if os.path.isdir(cfg["gen_attack_model_folder"]):
-                existing_files = os.listdir(cfg["gen_attack_model_folder"])
-                print(f"  Existing files in directory: {existing_files}")
+            # if os.path.isdir(cfg["gen_attack_model_folder"]):
+            #     existing_files = os.listdir(cfg["gen_attack_model_folder"])
+            #     print(f"  Existing files in directory: {existing_files}")
             print(f"  Will train from scratch.")
             gen_attack_model_path = None  #  no path to create model from scratch
         else:
