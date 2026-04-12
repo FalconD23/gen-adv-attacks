@@ -12,7 +12,7 @@ attack_params:
   disc_alpha: 0.0
   eps: 0.4
   is_clamp: false
-  n_steps: 1
+  n_steps: 15
   train_eps: 0.4
   use_sigmoid: true
 batch_size: 64

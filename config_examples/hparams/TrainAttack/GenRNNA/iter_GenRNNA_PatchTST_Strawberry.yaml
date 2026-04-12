@@ -1,0 +1,254 @@
+actual_training_params:
+  alpha_l2: 0.001
+  n_epochs: 100
+  optimizer_name: AdamW
+  optimizer_params:
+    lr: 2.5e-05
+  scheduler_name: StepLR
+  scheduler_params:
+    gamma: 0.5
+    step_size: 20
+attack_params:
+  disc_alpha: 0.0
+  eps: 0.3
+  is_clamp: false
+  n_steps: 1
+  train_eps: 0.3
+  use_sigmoid: true
+batch_size: 64
+gen_attack_model:
+  attack_train_mode: true
+  hyperparameters_vary:
+    act:
+      choices:
+      - gelu
+      - relu
+      optuna_type: choice
+    bias:
+      choices:
+      - true
+      - false
+      optuna_type: choice
+    bidirectional:
+      choices:
+      - true
+      - false
+      optuna_type: choice
+    c_in:
+      optuna_type: const
+      value: 1
+    c_out:
+      optuna_type: const
+      value: 1
+    d_ff:
+      choices:
+      - 128
+      - 256
+      - 512
+      - 1024
+      optuna_type: choice
+    encoder_dropout:
+      high: 0.5
+      low: 0.0
+      optuna_type: float
+      step: 0.1
+    encoder_layers:
+      choices:
+      - 1
+      - 2
+      - 3
+      - 4
+      optuna_type: choice
+    hidden_size:
+      choices:
+      - 32
+      - 64
+      - 128
+      optuna_type: choice
+    n_heads:
+      choices:
+      - 2
+      - 4
+      - 8
+      optuna_type: choice
+    rnn_dropout:
+      high: 0.7
+      low: 0.0
+      optuna_type: float
+      step: 0.1
+    rnn_layers:
+      choices:
+      - 1
+      - 2
+      optuna_type: choice
+    seq_len:
+      optuna_type: const
+      value: 235
+  name: GenRNNA
+  params:
+    act: gelu
+    bias: true
+    bidirectional: false
+    c_in: 1
+    c_out: 1
+    d_ff: 128
+    encoder_dropout: 0.2
+    encoder_layers: 3
+    hidden_size: 32
+    n_heads: 8
+    rnn_dropout: 0.4
+    rnn_layers: 1
+    seq_len: 235
+hyperparameters_vary:
+  act:
+    choices:
+    - gelu
+    - relu
+    optuna_type: choice
+  batch_size:
+    choices:
+    - 32
+    - 64
+    - 128
+    optuna_type: choice
+  bias:
+    choices:
+    - true
+    - false
+    optuna_type: choice
+  bidirectional:
+    choices:
+    - true
+    - false
+    optuna_type: choice
+  c_in:
+    optuna_type: const
+    value: 1
+  c_out:
+    optuna_type: const
+    value: 1
+  d_ff:
+    choices:
+    - 128
+    - 256
+    - 512
+    - 1024
+    optuna_type: choice
+  encoder_dropout:
+    high: 0.5
+    low: 0.0
+    optuna_type: float
+    step: 0.1
+  encoder_layers:
+    choices:
+    - 1
+    - 2
+    - 3
+    - 4
+    optuna_type: choice
+  eps:
+    choices:
+    - 0.3
+    optuna_type: choice
+  gamma:
+    choices:
+    - 0.5
+    - 0.8
+    - 0.95
+    optuna_type: choice
+  hidden_size:
+    choices:
+    - 32
+    - 64
+    - 128
+    optuna_type: choice
+  lr:
+    choices:
+    - 0.001
+    - 0.01
+    - 0.0001
+    optuna_type: choice
+  n_epochs:
+    optuna_type: const
+    value: 100
+  n_heads:
+    choices:
+    - 2
+    - 4
+    - 8
+    optuna_type: choice
+  n_steps:
+    choices:
+    - 5
+    - 10
+    optuna_type: choice
+  optimizer_name:
+    choices:
+    - Adam
+    - AdamW
+    optuna_type: choice
+  rnn_dropout:
+    high: 0.7
+    low: 0.0
+    optuna_type: float
+    step: 0.1
+  rnn_layers:
+    choices:
+    - 1
+    - 2
+    optuna_type: choice
+  seq_len:
+    optuna_type: const
+    value: 235
+  step_size:
+    choices:
+    - 5
+    - 10
+    - 20
+    optuna_type: choice
+  train_eps:
+    choices:
+    - 0.2
+    - 0.3
+    - 0.4
+    optuna_type: choice
+is_trainable: true
+name: TrainAttack
+named_params:
+- eps
+- n_steps
+optuna_best_params:
+  act: gelu
+  batch_size: 128
+  bias: true
+  bidirectional: false
+  d_ff: 128
+  encoder_dropout: 0.2
+  encoder_layers: 3
+  eps: 0.3
+  gamma: 0.5
+  hidden_size: 32
+  lr: 0.0001
+  n_heads: 8
+  n_steps: 10
+  optimizer_name: AdamW
+  rnn_dropout: 0.4
+  rnn_layers: 1
+  step_size: 20
+  train_eps: 0.3
+short_name: train_attack
+training_params:
+  alpha_l2: 0.001
+  criterion_name: BCELoss
+  criterion_params: None
+  early_stop_patience: 50
+  n_epochs: 100
+  optimizer_name: AdamW
+  optimizer_params:
+    lr: 0.0001
+  print_every: 5
+  scheduler_name: StepLR
+  scheduler_params:
+    gamma: 0.5
+    step_size: 20
+  train_self_supervised: false

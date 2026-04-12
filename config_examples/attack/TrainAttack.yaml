@@ -6,7 +6,7 @@ is_trainable: True
 attack_params:
   train_eps: 0.3
   eps: 0.3
-  n_steps: 5
+  n_steps: 1
   is_clamp: False
   disc_alpha: 0.0
   use_sigmoid: True
@@ -20,9 +20,9 @@ training_params:
   alpha_l2: 0.001
   criterion_name: BCELoss
   criterion_params: None
-  early_stop_patience: 30
+  early_stop_patience: 100
   n_epochs: 100
-  optimizer_name: Adam
+  optimizer_name: Adam # AdamW
   optimizer_params:
     lr: 0.001 # 0.0001
   print_every: 5
@@ -33,6 +33,8 @@ training_params:
   train_self_supervised: false
 
 
+
+
 hyperparameters_vary:
   train_eps:
     optuna_type: choice
@@ -40,56 +42,21 @@ hyperparameters_vary:
 
   eps:
     optuna_type: choice
-    choices: [0.4]
+    choices: [0.3]
 
   n_steps:
     optuna_type: choice
-    choices: [5, 20, 50] # [5, 20, 50] # [1]
+    choices: [5, 10] #[1] # [5, 20, 50] # [1]
   n_epochs:
     optuna_type: const
     value: 100
 
-  patch_len:
+  batch_size:
     optuna_type: choice
-    choices: [16, 32, 64, 128]
-
-  stride:
-    optuna_type: choice
-    choices: [4, 8, 16, 32]
-
-  dropout:
-    optuna_type: choice
-    choices: [0.1, 0.3, 0.6]
-  attn_dropout:
-    optuna_type: float
-    low: 0.0
-    high: 0.3
-    step: 0.05
-
-  n_layers:
-    optuna_type: choice
-    choices: [1, 2, 3, 4]
-
-  d_model:
-    optuna_type: choice
-    choices: [128, 256, 512]
-
-  d_ff:
-    optuna_type: choice
-    choices: [512, 1024, 2048]
-
-  n_heads:
-    optuna_type: choice
-    choices: [4, 8]
-
-  revin:
-    optuna_type: choice
-    choices: [true, false]
-
-  norm:
-    optuna_type: choice
-    choices: [BatchNorm, LayerNorm]
-
+    choices:
+    - 32
+    - 64
+    - 128
 
   step_size:
     optuna_type: choice
@@ -111,3 +78,49 @@ hyperparameters_vary:
     - 0.5
     - 0.8
     - 0.95
+
+
+
+  c_in:
+    optuna_type: const
+    value: 1
+  c_out:
+    optuna_type: const
+    value: 1
+  seq_len:
+    optuna_type: const
+    value: ${dataset.seq_len}
+  hidden_size:
+    optuna_type: choice
+    choices: [32, 64, 128]
+  rnn_layers:
+    optuna_type: choice
+    choices: [1, 2]
+  bias:
+    optuna_type: choice
+    choices: [true, false]
+  rnn_dropout:
+    optuna_type: float
+    low: 0.0
+    high: 0.7
+    step: 0.1
+  bidirectional:
+    optuna_type: choice
+    choices: [true, false]
+  encoder_layers:
+    optuna_type: choice
+    choices: [1, 2, 3, 4]
+  n_heads:
+    optuna_type: choice
+    choices: [2, 4, 8]
+  d_ff:
+    optuna_type: choice
+    choices: [128, 256, 512, 1024]
+  encoder_dropout:
+    optuna_type: float
+    low: 0.0
+    high: 0.5
+    step: 0.1
+  act:
+    optuna_type: choice
+    choices: [gelu, relu]

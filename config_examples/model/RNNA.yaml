@@ -4,17 +4,17 @@ params:
   seq_len: ${dataset.seq_len}
   c_in: 1 # ${dataset.num_dim} if multivariate
   c_out: 1 # ${dataset.n_classes} or 1 if binary
-  hidden_size: 256
+  hidden_size: 128 # 256
   rnn_layers: 1
   bias: True
-  rnn_dropout: 0
+  rnn_dropout: 0.2 # 0
   bidirectional: False
   encoder_layers: 3
   n_heads: 4
-  d_ff: 128
+  d_ff: 2048 # 128
   encoder_dropout: 0.1
   act: 'gelu'
-  fc_dropout: 0.0
+  fc_dropout: 0.2 # 0.0
 
 hyperparameters_vary:
   c_in:

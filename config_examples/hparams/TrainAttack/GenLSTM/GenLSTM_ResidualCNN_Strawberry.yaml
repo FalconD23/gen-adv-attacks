@@ -1,18 +1,8 @@
-actual_training_params:
-  alpha_l2: 0.001
-  n_epochs: 50
-  optimizer_name: Adam
-  optimizer_params:
-    lr: 0.0032768000000000007
-  scheduler_name: StepLR
-  scheduler_params:
-    gamma: 0.8
-    step_size: 10
 attack_params:
   disc_alpha: 0.0
-  eps: 0.4
+  eps: 0.3
   is_clamp: false
-  n_steps: 15
+  n_steps: 1
   train_eps: 0.3
   use_sigmoid: true
 batch_size: 64
@@ -24,33 +14,11 @@ gen_attack_model:
       low: 0.1
       optuna_type: float
       step: 0.1
-  name: GenPatchTST
+  name: GenLSTM
   params:
-    activation: gelu
-    activation_type: tanh
-    affine: false
-    attn_dropout: 0.0
-    c_in: 1
-    c_out: 1
-    d_ff: 2048
-    d_model: 512
-    decomposition: false
-    dropout: 0.6
-    individual: false
-    kernel_size: 25
-    n_heads: 4
+    dropout: 0.0
+    hidden_dim: 100
     n_layers: 1
-    norm: BatchNorm
-    padding_patch: true
-    patch_len: 16
-    pre_norm: false
-    pred_dim: 235
-    res_attention: true
-    revin: false
-    seq_len: 235
-    store_attn: false
-    stride: 16
-    subtract_last: false
 hyperparameters_vary:
   attn_dropout:
     high: 0.3
@@ -93,7 +61,7 @@ hyperparameters_vary:
     optuna_type: choice
   n_epochs:
     optuna_type: const
-    value: 50
+    value: 100
   n_heads:
     choices:
     - 4
@@ -108,7 +76,9 @@ hyperparameters_vary:
     optuna_type: choice
   n_steps:
     choices:
-    - 1
+    - 5
+    - 20
+    - 50
     optuna_type: choice
   norm:
     choices:
@@ -152,23 +122,23 @@ hyperparameters_vary:
     - 0.4
     optuna_type: choice
 is_trainable: true
-list_reg_model_params: []
 name: TrainAttack
 named_params:
 - eps
+- n_steps
 short_name: train_attack
 training_params:
   alpha_l2: 0.001
   criterion_name: BCELoss
   criterion_params: None
   early_stop_patience: 100
-  n_epochs: 50
+  n_epochs: 100
   optimizer_name: Adam
   optimizer_params:
-    lr: 0.01
-  print_every: 1
+    lr: 0.001
+  print_every: 4
   scheduler_name: StepLR
   scheduler_params:
-    gamma: 0.8
-    step_size: 10
+    gamma: 0.9
+    step_size: 8
   train_self_supervised: false

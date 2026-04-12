@@ -4,7 +4,7 @@ params:
   input_dim: 1 # ${dataset.num_dim} of multivariate
   hidden_dim: 128
   output_dim: 1 # ${dataset.n_classes} or 1 if binary
-  dropout: 0.1
+  dropout: 0.2
 
 hyperparameters_vary:
   dropout:
@@ -13,4 +13,4 @@ hyperparameters_vary:
     high: 0.7
     step: 0.1
 
-attack_train_mode: False
+attack_train_mode: True
