@@ -553,8 +553,8 @@ class GenAttackTrainer(Trainer):
         self.optimizer.zero_grad()
 
         X_adv = X
-        for i in range(self.attack.n_steps):
-            if i < self.attack.n_steps - 1:
+        for i in range(self.t):
+            if i < self.t - self.k:
                 with torch.no_grad():
                     X_adv = self.attack.step(X_adv, None, mode='train')
             else:
@@ -595,9 +595,13 @@ class GenAttackTrainer(Trainer):
 
         self._init_logging(["loss"] + self.estimator.get_metrics_names())
 
+        self.t = 3
+        self.k = 3
+
         for epoch in range(self.n_epochs):
             train_metrics_epoch = self._run_epoch(train_loader, mode="train")
             test_metrics_epoch = self._run_epoch(valid_loader, mode="valid")
+            self.t = min(self.t + 1, self.attack.n_steps)
 
             self._logging(train_metrics_epoch, test_metrics_epoch, epoch)
 
