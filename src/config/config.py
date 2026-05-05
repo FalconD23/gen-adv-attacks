@@ -6,6 +6,7 @@ import torch
 from src import attacks, estimation, models
 from src.attacks import attack_scheduler
 from src.utils import weights_from_clearml_by_name
+from src import iter_strategies
 
 
 def get_attack(attack_name: str, attack_params: Dict) -> attacks.BaseIterativeAttack:
@@ -174,3 +175,16 @@ def get_disc_list(
         list_disc_models.append(disc)
     return list_disc_models
 
+
+def get_iter_strategy(name: str,
+                      attack: attacks.BaseIterativeAttack,
+                      params: dict = None):
+    if params is None:
+        params = {}
+
+    if name in iter_strategies.PRESETS:
+        return iter_strategies.PRESETS[name](attack, **params)
+    try:
+        return getattr(iter_strategies, name)(attack, **params)
+    except KeyError:
+        raise ValueError(f"IterStrategy {name} not implemented")
