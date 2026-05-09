@@ -26,7 +26,7 @@ class FGSMAttack(BaseIterativeAttack, BatchIterativeAttack):
         BaseIterativeAttack.__init__(self, model=model, n_steps=n_steps, n_classes=n_classes)
         BatchIterativeAttack.__init__(self, estimator=estimator, logger=logger, n_classes=n_classes)
         self.criterion = criterion
-        self.eps = eps
+        self.eps = eps / n_steps
         self.is_regularized = False
         self.n_classes = n_classes
 
@@ -52,7 +52,7 @@ class FGSMAttack(BaseIterativeAttack, BatchIterativeAttack):
             # print(torch.norm(grad, p=1))
 
         grad_sign = torch.where(torch.isnan(grad), 0, torch.sign(grad))
-        X_adv = X.data + self.eps * grad_sign
+        X_adv = X.data + (self.eps / 1) * grad_sign
         return X_adv
 
     def update_data_batch_size(self, data_size, batch_size):
