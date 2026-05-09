@@ -50,12 +50,23 @@ COPY requirements.txt /app/requirements.txt
 ENV CONDA_AUTO_UPDATE_CONDA=false \
     PATH=$HOME/miniconda/bin:$PATH
 
-RUN curl -sLo ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py39_23.1.0-1-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p ~/miniconda \
- && rm ~/miniconda.sh \
+# COPY Miniconda3-py39_23.1.0-1-Linux-x86_64.sh ~/miniconda.sh
+# # RUN curl -sLo ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py39_23.1.0-1-Linux-x86_64.sh \
+#  RUN chmod +x ~/miniconda.sh \
+#  && ~/miniconda.sh -b -p ~/miniconda \
+#  && rm ~/miniconda.sh \
+#  && pip install -r requirements.txt \
+#  && rm /app/requirements.txt \
+#  && conda clean -ya
+
+COPY --chown=$DOCKER_NAME:$DOCKER_NAME Miniconda3-py39_23.1.0-1-Linux-x86_64.sh /tmp/miniconda.sh
+
+RUN chmod +x /tmp/miniconda.sh \
+ && /tmp/miniconda.sh -b -p $HOME/miniconda \
+ && rm /tmp/miniconda.sh \
  && pip install -r requirements.txt \
  && rm /app/requirements.txt \
  && conda clean -ya
+ 
 
 CMD jupyter notebook --allow-root --ip='0.0.0.0' --port=8890 --NotebookApp.token='' --NotebookApp.password=''
