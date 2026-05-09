@@ -17,3 +17,6 @@ datasets/*
 *credentials
 outputs/*
 config/*
+logs/*
+Scripts/*
+multirun/*
