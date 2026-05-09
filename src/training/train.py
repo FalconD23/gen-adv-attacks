@@ -15,6 +15,8 @@ from clearml import Task
 
 from src.attacks import BaseIterativeAttack, TrainableBatchIterativeAttack
 from src.attacks.attack_scheduler import AttackScheduler
+from src.iter_strategies import BaseIterStrategy
+
 from src.config import (
     get_attack,
     get_attack_scheduler,
@@ -22,6 +24,7 @@ from src.config import (
     get_model,
     get_optimizer,
     get_scheduler,
+    get_iter_strategy
 )
 from src.estimation import ClassifierEstimator
 from src.utils import (
@@ -383,6 +386,7 @@ class GenAttackTrainer(Trainer):
         criterion: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler.LRScheduler,
+        iter_strategy: BaseIterStrategy,
         n_epochs: int = 30,
         alpha_l2: float = 0.001,
         n_classes = 2,
@@ -412,6 +416,7 @@ class GenAttackTrainer(Trainer):
         self.alpha_l2 = alpha_l2
         self.train_attack = attack
         self.test_attack = copy.deepcopy(attack)
+        self.iter_strategy = iter_strategy
         self.disc_trainer = False
 
     @staticmethod
@@ -424,6 +429,8 @@ class GenAttackTrainer(Trainer):
         optimizer_params: Dict = None,
         scheduler_name: str = "None",
         scheduler_params: Dict = None,
+        iter_strategy_name: str = "None",
+        iter_strategy_params: Dict = None,
         n_epochs: int = 30,
         alpha_l2: float = 0.001,
         n_classes = 2,
@@ -455,6 +462,7 @@ class GenAttackTrainer(Trainer):
         criterion = get_criterion(criterion_name, criterion_params)
         optimizer = get_optimizer(optimizer_name, attack.gen_model.parameters(), optimizer_params)
         scheduler = get_scheduler(scheduler_name, optimizer, scheduler_params)
+        iter_strategy = get_iter_strategy(iter_strategy_name, attack, iter_strategy_params)
 
 
         return GenAttackTrainer(
@@ -462,6 +470,7 @@ class GenAttackTrainer(Trainer):
             criterion=criterion,
             optimizer=optimizer,
             scheduler=scheduler,
+            iter_strategy=iter_strategy,
             n_epochs=n_epochs,
             alpha_l2=alpha_l2,
             n_classes = n_classes,
@@ -536,10 +545,15 @@ class GenAttackTrainer(Trainer):
     def _attack_criterion(self, X_adv: torch.Tensor, X: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
         delta = X_adv - X
         logits = self.attack.model(X_adv)
-
-        loss_attack = self.criterion(logits, labels)
         reg = self.alpha_l2 * (delta ** 2).mean()
-        loss = -(loss_attack - reg)
+
+        if labels.max() <= 1:
+            loss_to_inverted = self.criterion(logits, 1 - labels)
+            loss = loss_to_inverted + reg
+        else:
+            print('WARNING: multilabel classification, fallback on -loss')
+            loss_attack = self.criterion(logits, labels)
+            loss = -(loss_attack - reg)
 
         return loss, logits
 
@@ -547,13 +561,10 @@ class GenAttackTrainer(Trainer):
     def _train_step(self, X: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor]:
         self.optimizer.zero_grad()
 
-        X_adv = X
-        for i in range(self.attack.n_steps):
-            if i < self.attack.n_steps - 1:
-                # with torch.no_grad():
-                X_adv = self.attack.step(X_adv, None, mode='train')
-            else:
-                X_adv = self.attack.step(X_adv, None, mode='train')
+        if self.iter_strategy:
+            X_adv = self.iter_strategy.run(X)
+        else:
+            X_adv = X
 
         if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
             labels = labels.squeeze(-1).long()
@@ -562,7 +573,7 @@ class GenAttackTrainer(Trainer):
         loss.backward()
         self.optimizer.step()
 
-        return -loss, logits
+        return loss, logits
 
     def _valid_step(self, X: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor]:
         with torch.no_grad():
@@ -593,6 +604,9 @@ class GenAttackTrainer(Trainer):
         for epoch in range(self.n_epochs):
             train_metrics_epoch = self._run_epoch(train_loader, mode="train")
             test_metrics_epoch = self._run_epoch(valid_loader, mode="valid")
+
+            if self.iter_strategy:
+                self.iter_strategy.next_epoch()
 
             self._logging(train_metrics_epoch, test_metrics_epoch, epoch)
 
